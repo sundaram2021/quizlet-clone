@@ -1,19 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "./lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { type NextRequest, NextResponse } from 'next/server';
+import {  ROOT_ROUTE, SESSION_COOKIE_NAME, QUIZ_ROUTE } from './lib/constants';
 
-export async function middleware(request: NextRequest) {
-  return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => {
-      if (!user && request.nextUrl.pathname.startsWith("/")) {
-        resolve(NextResponse.redirect(new URL("/login", request.url)));
-      } else {
-        resolve(NextResponse.next());
-      }
-    });
-  });
+const protectedRoutes = [QUIZ_ROUTE];
+
+export default function middleware(request: NextRequest) {
+  const session = request.cookies.get(SESSION_COOKIE_NAME)?.value || '';
+
+  // Redirect to login if session is not set
+  if (!session && protectedRoutes.includes(request.nextUrl.pathname)) {
+    const absoluteURL = new URL(ROOT_ROUTE, request.nextUrl.origin);
+    return NextResponse.redirect(absoluteURL.toString());
+  }
+
+  // Redirect to home if session is set and user tries to access root
+  if (session && request.nextUrl.pathname === ROOT_ROUTE) {
+    const absoluteURL = new URL(ROOT_ROUTE, request.nextUrl.origin);
+    return NextResponse.redirect(absoluteURL.toString());
+  }
 }
-
-// export const config = {
-//   matcher: ["/quiz", "/login"],
-// };

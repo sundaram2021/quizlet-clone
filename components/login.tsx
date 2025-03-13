@@ -5,19 +5,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Chrome } from "lucide-react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { signInWithPopup } from "firebase/auth"
-import { auth, googleProvider } from "@/lib/firebase"
+import { createSession } from "@/lib/auth-actions"
+import { signInWithGoogle } from "@/lib/auth"
 
 export default function Login() {
 
     const router = useRouter();
     const handleGoogleLogin = async () => {
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            console.log("Google login result:", result);
-            router.push("/quiz");
-        } catch (error) {
-            console.error("Error during Google login:", error);
+        const userUid = await signInWithGoogle();
+        if (userUid) {
+            await createSession(userUid);
         }
     };
 

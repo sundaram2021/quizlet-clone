@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthContext } from "@/hooks/use-auth-context";
 import { motion, AnimatePresence } from "framer-motion";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signOutWithGoogle } from "@/lib/auth";
+import { removeSession } from "@/lib/auth-actions";
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -46,14 +46,9 @@ export default function Navbar() {
     };
 
     const handleSignOut = async () => {
-       
-        try {
-            await signOut(auth);
-            router.push("/");
-        } catch (error) {
-            console.error("Error signing out:", error);
-        }
-    };
+        await signOutWithGoogle();
+        await removeSession();
+      };
 
     return (
         <motion.nav
