@@ -5,7 +5,7 @@ const protectedRoutes = [QUIZ_ROUTE];
 
 // Define the matcher configuration
 export const config = {
-  matcher: ['/quiz', '/'], // Ensure each entry starts with a '/'
+  matcher: '/quiz', // Ensure each entry starts with a '/'
 };
 
 export default function middleware(request: NextRequest) {
