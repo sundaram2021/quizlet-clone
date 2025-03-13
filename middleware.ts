@@ -22,4 +22,7 @@ export default function middleware(request: NextRequest) {
     const absoluteURL = new URL(QUIZ_ROUTE, request.nextUrl.origin);
     return NextResponse.redirect(absoluteURL.toString());
   }
+
+  return NextResponse.next();
+
 }
