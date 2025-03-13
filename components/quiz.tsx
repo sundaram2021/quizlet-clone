@@ -1,219 +1,118 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Check,
-  X,
-  RefreshCw,
-  FileText,
-} from "lucide-react";
-import QuizScore from "./score";
-import QuizReview from "./quiz-overview";
-import { Question } from "@/lib/schemas";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuizLogic } from "@/hooks/use-quiz"; 
+import type { z } from "zod";
+import type { questionsSchema } from "@/lib/schemas";
 
-type QuizProps = {
-  questions: Question[];
-  clearPDF: () => void;
+interface QuizProps {
   title: string;
-};
+  questions: z.infer<typeof questionsSchema>;
+  onComplete: (score: number) => void;
+  onCancel: () => void;
+}
 
-const QuestionCard: React.FC<{
-  question: Question;
-  selectedAnswer: string | null;
-  onSelectAnswer: (answer: string) => void;
-  isSubmitted: boolean;
-  showCorrectAnswer: boolean;
-}> = ({ question, selectedAnswer, onSelectAnswer, showCorrectAnswer }) => {
-  const answerLabels = ["A", "B", "C", "D"];
-
-  return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold leading-tight">
-        {question.question}
-      </h2>
-      <div className="grid grid-cols-1 gap-4">
-        {question.options.map((option, index) => (
-          <Button
-            key={index}
-            variant={
-              selectedAnswer === answerLabels[index] ? "secondary" : "outline"
-            }
-            className={`h-auto py-6 px-4 justify-start text-left whitespace-normal ${
-              showCorrectAnswer && answerLabels[index] === question.answer
-                ? "bg-green-600 hover:bg-green-700"
-                : showCorrectAnswer &&
-                    selectedAnswer === answerLabels[index] &&
-                    selectedAnswer !== question.answer
-                  ? "bg-red-600 hover:bg-red-700"
-                  : ""
-            }`}
-            onClick={() => onSelectAnswer(answerLabels[index])}
-          >
-            <span className="text-lg font-medium mr-4 shrink-0">
-              {answerLabels[index]}
-            </span>
-            <span className="flex-grow">{option}</span>
-            {(showCorrectAnswer && answerLabels[index] === question.answer) ||
-              (selectedAnswer === answerLabels[index] && (
-                <Check className="ml-2 shrink-0 text-white" size={20} />
-              ))}
-            {showCorrectAnswer &&
-              selectedAnswer === answerLabels[index] &&
-              selectedAnswer !== question.answer && (
-                <X className="ml-2 shrink-0 text-white" size={20} />
-              )}
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default function Quiz({
-  questions,
-  clearPDF,
-  title = "Quiz",
-}: QuizProps) {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<string[]>(
-    Array(questions.length).fill(null),
-  );
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [score, setScore] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setProgress((currentQuestionIndex / questions.length) * 100);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [currentQuestionIndex, questions.length]);
-
-  const handleSelectAnswer = (answer: string) => {
-    if (!isSubmitted) {
-      const newAnswers = [...answers];
-      newAnswers[currentQuestionIndex] = answer;
-      setAnswers(newAnswers);
-    }
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-
-  const handleSubmit = () => {
-    setIsSubmitted(true);
-    const correctAnswers = questions.reduce((acc, question, index) => {
-      return acc + (question.answer === answers[index] ? 1 : 0);
-    }, 0);
-    setScore(correctAnswers);
-  };
-
-  const handleReset = () => {
-    setAnswers(Array(questions.length).fill(null));
-    setIsSubmitted(false);
-    setScore(null);
-    setCurrentQuestionIndex(0);
-    setProgress(0);
-  };
-
-  const currentQuestion = questions[currentQuestionIndex];
+export default function QuizComponent({ title, questions, onComplete, onCancel }: QuizProps) {
+  const {
+    currentQuestionIndex,
+    selectedAnswers,
+    score,
+    timeSpent,
+    handleAnswerSelect,
+    handleNext,
+    handlePrevious,
+    calculateScore,
+    formatTime,
+    progressPercentage,
+    currentQuestion,
+    isLastQuestion,
+    isFirstQuestion,
+    answerLabels,
+  } = useQuizLogic({ title, questions, onComplete, onCancel });
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8 text-center text-foreground">
-          {title}
-        </h1>
-        <div className="relative">
-          {!isSubmitted && <Progress value={progress} className="h-1 mb-8" />}
-          <div className="min-h-[400px]">
-            {" "}
-            {/* Prevent layout shift */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={isSubmitted ? "results" : currentQuestionIndex}
-                initial={{ opacity: 1 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {!isSubmitted ? (
-                  <div className="space-y-8">
-                    <QuestionCard
-                      question={currentQuestion}
-                      selectedAnswer={answers[currentQuestionIndex]}
-                      onSelectAnswer={handleSelectAnswer}
-                      isSubmitted={isSubmitted}
-                      showCorrectAnswer={false}
-                    />
-                    <div className="flex justify-between items-center pt-4">
-                      <Button
-                        onClick={handlePreviousQuestion}
-                        disabled={currentQuestionIndex === 0}
-                        variant="ghost"
-                      >
-                        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-                      </Button>
-                      <span className="text-sm font-medium">
-                        {currentQuestionIndex + 1} / {questions.length}
-                      </span>
-                      <Button
-                        onClick={handleNextQuestion}
-                        disabled={answers[currentQuestionIndex] === null}
-                        variant="ghost"
-                      >
-                        {currentQuestionIndex === questions.length - 1
-                          ? "Submit"
-                          : "Next"}{" "}
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    <QuizScore
-                      correctAnswers={score ?? 0}
-                      totalQuestions={questions.length}
-                    />
-                    <div className="space-y-12">
-                      <QuizReview questions={questions} userAnswers={answers} />
-                    </div>
-                    <div className="flex justify-center space-x-4 pt-4">
-                      <Button
-                        onClick={handleReset}
-                        variant="outline"
-                        className="bg-muted hover:bg-muted/80 w-full"
-                      >
-                        <RefreshCw className="mr-2 h-4 w-4" /> Reset Quiz
-                      </Button>
-                      <Button
-                        onClick={clearPDF}
-                        className="bg-primary hover:bg-primary/90 w-full"
-                      >
-                        <FileText className="mr-2 h-4 w-4" /> Try Another PDF
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+    <Card className="bg-black/40 backdrop-blur-md border-white/10">
+      <CardHeader className="space-y-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+            {title}
+          </CardTitle>
+          <div className="text-white/70 text-sm">Time: {formatTime(timeSpent)}</div>
         </div>
-      </main>
-    </div>
+        <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300"
+            style={{ width: `${progressPercentage}%` }}
+          ></div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">
+              Question {currentQuestionIndex + 1} of {questions.length}
+            </span>
+            <span className="text-white/70">{selectedAnswers[currentQuestionIndex] ? "Answered" : "Unanswered"}</span>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentQuestionIndex}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="space-y-4">
+                <h3 className="text-xl font-medium text-white">{currentQuestion.question}</h3>
+
+                <div className="space-y-3">
+                  {currentQuestion.options.map((option, index) => (
+                    <Button
+                      key={index}
+                      variant={selectedAnswers[currentQuestionIndex] === answerLabels[index] ? "secondary" : "outline"}
+                      className={`w-full h-auto py-4 px-4 justify-start text-left whitespace-normal border-white/20 hover:border-white/40 ${selectedAnswers[currentQuestionIndex] === answerLabels[index]
+                          ? "bg-blue-500/20 border-blue-500 text-white"
+                          : "text-white hover:bg-white/10"
+                        } transition-colors`}
+                      onClick={() => handleAnswerSelect(index)}
+                    >
+                      <span className="font-medium mr-4 shrink-0">{answerLabels[index]}.</span>
+                      <span className="flex-grow">{option}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={handlePrevious}
+          disabled={isFirstQuestion}
+          className="border-white/20 text-white hover:bg-white/10"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={onCancel} className="border-white/20 text-white hover:bg-white/10">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleNext}
+            disabled={!selectedAnswers[currentQuestionIndex]}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+          >
+            {isLastQuestion ? "Finish" : "Next"} <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
   );
 }
