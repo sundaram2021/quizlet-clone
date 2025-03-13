@@ -57,7 +57,7 @@ export default function AboutPage() {
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
                         Our platform leverages advanced AI technology to transform any PDF document into interactive quizzes instantly.
-                        We're dedicated to making learning more engaging and effective for educators, students, and professionals alike.
+                        We&apos;re dedicated to making learning more engaging and effective for educators, students, and professionals alike.
                     </motion.p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full mt-8">
