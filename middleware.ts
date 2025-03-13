@@ -24,5 +24,10 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/about", "/login"], // Ensure each entry starts with a '/'
-  };
+  matcher: [
+    '/', 
+    '/quiz/:path*',
+    '/about',
+    '/login'
+  ]
+};
