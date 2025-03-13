@@ -4,9 +4,7 @@ import { ROOT_ROUTE, SESSION_COOKIE_NAME, QUIZ_ROUTE } from './lib/constants';
 const protectedRoutes = [QUIZ_ROUTE];
 
 // Define the matcher configuration
-export const config = {
-  matcher: '/quiz', // Ensure each entry starts with a '/'
-};
+
 
 export default function middleware(request: NextRequest) {
   const session = request.cookies.get(SESSION_COOKIE_NAME)?.value || '';
@@ -26,3 +24,7 @@ export default function middleware(request: NextRequest) {
   return NextResponse.next();
 
 }
+
+export const config = {
+    matcher: '/quiz', // Ensure each entry starts with a '/'
+  };
