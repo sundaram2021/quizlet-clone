@@ -17,7 +17,7 @@ export default function middleware(request: NextRequest) {
 
   // Redirect to home if session is set and user tries to access root
   if (session && request.nextUrl.pathname === ROOT_ROUTE) {
-    const absoluteURL = new URL(QUIZ_ROUTE, request.nextUrl.origin);
+    const absoluteURL = new URL(ROOT_ROUTE, request.nextUrl.origin);
     return NextResponse.redirect(absoluteURL.toString());
   }
 
