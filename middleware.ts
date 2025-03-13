@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
-export async function middleware(request) {
+export async function middleware(request: NextRequest) {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, (user) => {
       if (!user && request.nextUrl.pathname.startsWith("/")) {
@@ -15,5 +15,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: [],
+  matcher: ["/"],
 };
