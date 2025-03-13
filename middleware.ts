@@ -14,6 +14,6 @@ export async function middleware(request: NextRequest) {
   });
 }
 
-export const config = {
-  matcher: ["/quiz", "/login"],
-};
+// export const config = {
+//   matcher: ["/quiz", "/login"],
+// };
