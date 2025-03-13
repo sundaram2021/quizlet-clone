@@ -26,5 +26,5 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/about', '/login'], // Ensure each entry starts with a '/'
+    matcher: ["/about", "/login"], // Ensure each entry starts with a '/'
   };
