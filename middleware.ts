@@ -3,7 +3,7 @@ import { ROOT_ROUTE, SESSION_COOKIE_NAME, QUIZ_ROUTE } from './lib/constants';
 
 const protectedRoutes = [QUIZ_ROUTE];
 
-// Add a matcher configuration
+// Define the matcher configuration
 export const config = {
   matcher: ['/quiz', '/'], // Ensure each entry starts with a '/'
 };
